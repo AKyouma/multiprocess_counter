@@ -17,53 +17,48 @@ int primo (int numero){
 	int i;
 	if (numero == 1 || numero == 0)
 		return 0;
-	for (i=2; i<numero; i++){
-		if (numero%i == 0)
+	for (i=2; i<=numero/2; i++){
+		if (numero % i == 0)
 			return 0;
 	}
 	return 1;
 }
 
 int main() {
-	pid_t p[4];
-	int *mem_compartilhada, *aponta;
-	int *resultado, final;
-	char a;
+	pid_t p;
+	int *resultado;
+	int a, filhos=0;
 
 	/*Definir flags de protecao e visibilidade de memoria*/
 	int protection = PROT_READ | PROT_WRITE;
 	int visibility = MAP_SHARED | MAP_ANON;
 	
-	/*Criação da memória compartilhada*/
-	mem_compartilhada = (int*) mmap(NULL, sizeof(int)*500, protection, visibility, 0, 0);
+	/*Criação da memória compartilhada para o resultado*/
+	resultado = (int*) mmap(NULL, sizeof(int), protection, visibility, 0, 0);
 	
-	/*seta aponta para percorrer o vetor da entrada*/
-	aponta = &(mem_compartilhada[0]);
-	resultado = &(mem_compartilhada[1]);
-	*aponta = 2;
 
-	/*lê a entrada*/
-	while((a = getchar()) != '\n'){
-
-		scanf("%d", &(mem_compartilhada[(*aponta)]));
-		(*aponta)++;
-	}
 	
-	/*cria os processos filhos, com máximo de 4*/
-	for(int filho=0; filho < 4; filho++){
-		p[filho] = fork();
-		if(p[filho] == 0)
-			exit(0);
+	do{
+		/*lê a entrada*/
+		scanf("%d", &a);
+		
+		if(filhos == 4){
+			for(; waitpid(p, NULL, 0) > 0; filhos--);
+			for(; filhos >= 4; filhos--)
+				wait(NULL);
+		}
+		
+		p = fork();
+		filhos++;
+		if(p == 0){
+			(*resultado) += primo(a);
+			exit(0);	
+		}
 	}
-	
-	/*percorre a memoria compartilhada averiguando cada numero pego na entrada se é primo ou não*/
-  	while ((*aponta) >= 2){
-		(*aponta)--;
-		*resultado = *resultado + primo(mem_compartilhada[(*aponta)]);
-	}
+	while((a = getchar()) != '\n');
 	
 	/*espera todos os filhos acabarem*/
-	while(wait(&final) != -1);
+	while(wait(NULL) > 0); 
 
 	printf("%d\n", *resultado);
 	
