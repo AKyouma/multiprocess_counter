@@ -43,9 +43,9 @@ int main() {
 		scanf("%d", &a);
 		
 		if(filhos == 4){
-			for(; waitpid(p, NULL, 0) > 0; filhos--);
-			for(; filhos >= 4; filhos--)
-				wait(NULL);
+			while (waitpid(p, NULL, 0) > 0){
+					filhos--; 
+			}
 		}
 		
 		p = fork();
