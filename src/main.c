@@ -27,7 +27,7 @@ int primo (int numero){
 int main() {
 	pid_t p[4];
 	int *mem_compartilhada, *aponta;
-	int resultado, final=0;
+	int *resultado, final;
 	char a;
 
 	/*Definir flags de protecao e visibilidade de memoria*/
@@ -39,7 +39,8 @@ int main() {
 	
 	/*seta aponta para percorrer o vetor da entrada*/
 	aponta = &(mem_compartilhada[0]);
-	*aponta = 1;
+	resultado = &(mem_compartilhada[1]);
+	*aponta = 2;
 
 	/*lê a entrada*/
 	while((a = getchar()) != '\n'){
@@ -52,19 +53,19 @@ int main() {
 	for(int filho=0; filho < 4; filho++){
 		p[filho] = fork();
 		if(p[filho] == 0)
-			break;
+			exit(0);
 	}
 	
 	/*percorre a memoria compartilhada averiguando cada numero pego na entrada se é primo ou não*/
-  	while ((*aponta) >= 1){
-			(*aponta)--;
-			resultado = resultado + primo(mem_compartilhada[(*aponta)]);
+  	while ((*aponta) >= 2){
+		(*aponta)--;
+		*resultado = *resultado + primo(mem_compartilhada[(*aponta)]);
 	}
 	
 	/*espera todos os filhos acabarem*/
 	while(wait(&final) != -1);
 
-	printf("%d\n", resultado);
+	printf("%d\n", *resultado);
 	
   return 0;
 }
